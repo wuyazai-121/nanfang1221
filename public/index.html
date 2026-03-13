@@ -1,219 +1,284 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Takeout Pro</title>
+    <title>嵌入式开发选型与连线指导平台</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app">
       <aside class="sidebar">
         <div class="brand">
-          <div class="logo">TP</div>
-          <div class="brand-text">
-            <h1>Takeout Pro</h1>
-            <p>Delivery dashboard</p>
+          <div class="logo">ED</div>
+          <div>
+            <h1>Embed Design</h1>
+            <p>选型 · 连线 · 手册</p>
           </div>
         </div>
 
         <nav class="nav">
-          <button class="tab active" data-view="customer">Dashboard</button>
-          <button class="tab" data-view="orders">Orders</button>
-          <button class="tab" data-view="admin">Admin</button>
-          <button class="tab" data-view="account">Account</button>
+          <button class="tab active" data-view="home">首页</button>
+          <button class="tab" data-view="select">选型</button>
+          <button class="tab" data-view="wiring">连线</button>
+          <button class="tab" data-view="manuals">手册</button>
+          <button class="tab" data-view="admin">管理</button>
+          <button class="tab" data-view="account">账号</button>
         </nav>
 
         <div class="sidebar-footer">
-          <div class="pill" id="status">Offline</div>
-          <div class="user" id="userBadge">Guest</div>
+          <div class="pill" id="status">离线</div>
+          <div class="user" id="userBadge">访客</div>
         </div>
       </aside>
 
       <main class="main">
         <header class="topbar">
           <div>
-            <h2>Hi, welcome back</h2>
-            <p>Track restaurants and orders in real time</p>
+            <h2>嵌入式开发选型与连线指导平台</h2>
+            <p>智能选型、可视化连线、技术手册提取，一站式完成方案设计。</p>
           </div>
           <div class="top-actions">
-            <div class="search">
-              <input placeholder="Search restaurant, dish, order" />
-            </div>
-            <button class="primary">Upgrade</button>
+            <input class="search" id="globalSearch" placeholder="搜索芯片 / 传感器 / 手册" />
+            <button class="primary" id="searchBtn">检索</button>
           </div>
         </header>
 
         <section class="views">
-          <section class="view active" id="view-customer">
-            <div class="customer-grid">
-              <div class="left-col">
-                <section class="panel hero">
-                  <div class="hero-copy">
-                    <h3>Daily Overview</h3>
-                    <p>Monitor active delivery flow and estimated load.</p>
-                    <div class="chips">
-                      <span>Peak ETA</span>
-                      <span>Order Velocity</span>
-                      <span>Delivery Health</span>
-                    </div>
-                  </div>
-                  <div class="hero-visual">
-                    <div class="bubble bubble-a"></div>
-                    <div class="bubble bubble-b"></div>
-                    <div class="bubble bubble-c"></div>
-                    <div class="hero-metric">
-                      <strong id="heroTotal">CNY 0.00</strong>
-                      <span>Projected revenue</span>
-                    </div>
-                  </div>
-                </section>
-
-                <section class="panel card-stack">
-                  <div class="panel-head">
-                    <h3>Delivery Setup</h3>
-                    <span class="tag">Live</span>
-                  </div>
-                  <div class="field">
-                    <label>Delivery address</label>
-                    <input id="address" placeholder="Street, building, room" />
-                  </div>
-                  <div class="coords">
-                    <input id="lat" placeholder="Lat" />
-                    <input id="lng" placeholder="Lng" />
-                    <button id="useDemo">Use Demo Location</button>
-                  </div>
-                </section>
-
-                <section class="panel">
-                  <div class="panel-head">
-                    <h3>Restaurants</h3>
-                    <span class="tag">Nearby</span>
-                  </div>
-                  <div id="restaurants" class="list"></div>
-                </section>
-
-                <section class="panel">
-                  <div class="panel-head">
-                    <h3>Menu</h3>
-                    <span class="tag">Dynamic</span>
-                  </div>
-                  <div id="menu" class="list"></div>
-                </section>
+          <section class="view active" id="view-home">
+            <div class="hero">
+              <div>
+                <h3>今天想做什么？</h3>
+                <p>选择一个场景，系统将智能匹配芯片与传感器组合。</p>
+                <div class="chips">
+                  <span>智能家居</span>
+                  <span>工业控制</span>
+                  <span>环境监测</span>
+                  <span>机器人</span>
+                </div>
+                <button class="primary" data-jump="select">立即智能选型</button>
               </div>
-
-              <div class="right-col">
-                <section class="panel cart">
-                  <div class="panel-head">
-                    <h3>Cart</h3>
-                    <span class="tag">Checkout</span>
-                  </div>
-                  <div id="cart" class="cart-list"></div>
-                  <div class="cart-total">
-                    <span>Items Total</span>
-                    <strong id="itemsTotal">CNY 0.00</strong>
-                  </div>
-                  <div class="cart-total">
-                    <span>Delivery Fee</span>
-                    <strong id="deliveryFee">CNY 0.00</strong>
-                  </div>
-                  <div class="cart-total grand">
-                    <span>Grand Total</span>
-                    <strong id="grandTotal">CNY 0.00</strong>
-                  </div>
-                  <button id="checkout" class="primary">Place Order</button>
-                  <div id="orderResult" class="result"></div>
-                </section>
-
-                <section class="panel map">
-                  <div class="panel-head">
-                    <h3>Distance Preview</h3>
-                    <span id="mapInfo" class="tag">Set location</span>
-                  </div>
-                  <div id="mapCanvas" class="map-canvas"></div>
-                </section>
+              <div class="hero-card">
+                <div class="metric">
+                  <strong id="statsChips">0</strong>
+                  <span>芯片型号</span>
+                </div>
+                <div class="metric">
+                  <strong id="statsSensors">0</strong>
+                  <span>传感器型号</span>
+                </div>
+                <div class="metric">
+                  <strong>7/24</strong>
+                  <span>在线指导</span>
+                </div>
               </div>
+            </div>
+
+            <div class="grid">
+              <section class="panel">
+                <h3>热门芯片</h3>
+                <div id="hotChips" class="list"></div>
+              </section>
+              <section class="panel">
+                <h3>热门传感器</h3>
+                <div id="hotSensors" class="list"></div>
+              </section>
+              <section class="panel">
+                <h3>关键能力</h3>
+                <ul class="feature-list">
+                  <li>智能选型算法与权重可调</li>
+                  <li>芯片与传感器引脚可视化连线</li>
+                  <li>手册关键参数提取与快速查阅</li>
+                  <li>支持管理员维护数据库</li>
+                </ul>
+              </section>
             </div>
           </section>
 
-          <section class="view" id="view-orders">
-            <div class="panel">
+          <section class="view" id="view-select">
+            <div class="grid">
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>智能选型</h3>
+                  <span class="tag">推荐</span>
+                </div>
+                <div class="form">
+                  <div class="row">
+                    <label>应用场景</label>
+                    <input id="scenario" placeholder="如 智能家居 / 工业控制" />
+                  </div>
+                  <div class="row">
+                    <label>核心需求</label>
+                    <div class="pill-group">
+                      <button data-need="低功耗">低功耗</button>
+                      <button data-need="高精度">高精度</button>
+                      <button data-need="多接口">多接口</button>
+                      <button data-need="低成本">低成本</button>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <label>传感器类型</label>
+                    <div class="pill-group">
+                      <button data-sensor="温湿度">温湿度</button>
+                      <button data-sensor="压力">压力</button>
+                      <button data-sensor="光照">光照</button>
+                      <button data-sensor="IMU">IMU</button>
+                      <button data-sensor="超声波">超声波</button>
+                    </div>
+                  </div>
+                  <button class="primary" id="smartSelect">生成推荐</button>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>推荐结果</h3>
+                  <span class="tag">Top 5</span>
+                </div>
+                <div id="selectResults" class="list"></div>
+              </section>
+            </div>
+
+            <section class="panel">
               <div class="panel-head">
-                <h3>Order History</h3>
-                <span class="tag">Account</span>
+                <h3>手动选型</h3>
+                <span class="tag">高级</span>
               </div>
-              <div id="orders" class="orders"></div>
+              <div class="grid">
+                <div>
+                  <label>芯片列表</label>
+                  <div id="chipList" class="list"></div>
+                </div>
+                <div>
+                  <label>传感器列表</label>
+                  <div id="sensorList" class="list"></div>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" id="view-wiring">
+            <div class="grid">
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>芯片与传感器选择</h3>
+                  <span class="tag">连线</span>
+                </div>
+                <div class="form">
+                  <label>芯片</label>
+                  <select id="wiringChip"></select>
+                  <label>传感器（可多选）</label>
+                  <div id="wiringSensors" class="pill-group"></div>
+                  <button class="primary" id="genWiring">生成连线方案</button>
+                </div>
+              </section>
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>连线指导</h3>
+                  <span class="tag">自动</span>
+                </div>
+                <div id="wiringResult" class="list"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view" id="view-manuals">
+            <div class="grid">
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>技术手册</h3>
+                  <span class="tag">PDF/Word</span>
+                </div>
+                <div class="form">
+                  <select id="manualType">
+                    <option value="chip">芯片</option>
+                    <option value="sensor">传感器</option>
+                  </select>
+                  <select id="manualTarget"></select>
+                  <button class="primary" id="loadManual">加载手册</button>
+                </div>
+                <div id="manualList" class="list"></div>
+              </section>
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>提取窗口</h3>
+                  <span class="tag">悬浮</span>
+                </div>
+                <div id="extractPane" class="extract">
+                  <p>选择手册后展示关键信息。</p>
+                </div>
+              </section>
             </div>
           </section>
 
           <section class="view" id="view-admin">
-            <div class="admin-grid">
-              <section class="panel">
-                <div class="panel-head">
-                  <h3>Restaurant Manager</h3>
-                  <span class="tag">CRUD</span>
+            <div class="panel">
+              <div class="panel-head">
+                <h3>数据库管理</h3>
+                <span class="tag">管理员</span>
+              </div>
+              <div class="grid">
+                <div>
+                  <h4>新增芯片</h4>
+                  <div class="form">
+                    <input id="adminChipModel" placeholder="型号" />
+                    <input id="adminChipVendor" placeholder="厂商" />
+                    <input id="adminChipPackage" placeholder="封装" />
+                    <input id="adminChipVoltageMin" placeholder="电压下限" />
+                    <input id="adminChipVoltageMax" placeholder="电压上限" />
+                    <input id="adminChipCpu" placeholder="CPU" />
+                    <input id="adminChipFreq" placeholder="主频 MHz" />
+                    <input id="adminChipRam" placeholder="RAM KB" />
+                    <input id="adminChipFlash" placeholder="Flash KB" />
+                    <input id="adminChipInterfaces" placeholder="接口列表: GPIO,I2C,SPI" />
+                    <input id="adminChipScenario" placeholder="场景" />
+                    <input id="adminChipCost" placeholder="成本等级(1-5)" />
+                    <button class="primary" id="adminSaveChip">保存芯片</button>
+                  </div>
                 </div>
-                <div class="form-row">
-                  <input id="restName" placeholder="Name" />
-                  <input id="restEta" placeholder="ETA (min)" />
-                  <input id="restRating" placeholder="Rating" />
+                <div>
+                  <h4>新增传感器</h4>
+                  <div class="form">
+                    <input id="adminSensorModel" placeholder="型号" />
+                    <input id="adminSensorType" placeholder="类型" />
+                    <input id="adminSensorVendor" placeholder="厂商" />
+                    <input id="adminSensorVoltageMin" placeholder="电压下限" />
+                    <input id="adminSensorVoltageMax" placeholder="电压上限" />
+                    <input id="adminSensorInterface" placeholder="接口类型" />
+                    <input id="adminSensorRange" placeholder="测量范围" />
+                    <input id="adminSensorAccuracy" placeholder="精度" />
+                    <input id="adminSensorPins" placeholder="引脚: VCC,GND,SDA" />
+                    <input id="adminSensorScenario" placeholder="场景" />
+                    <button class="primary" id="adminSaveSensor">保存传感器</button>
+                  </div>
                 </div>
-                <div class="form-row">
-                  <input id="restLat" placeholder="Lat" />
-                  <input id="restLng" placeholder="Lng" />
-                  <input id="restBase" placeholder="Base fee (cents)" />
-                  <input id="restPerKm" placeholder="Per km (cents)" />
-                </div>
-                <div class="form-row">
-                  <button id="saveRestaurant" class="primary">Save Restaurant</button>
-                  <button id="resetRestaurant">Reset</button>
-                </div>
-                <div id="adminRestaurants" class="list"></div>
-              </section>
-
-              <section class="panel">
-                <div class="panel-head">
-                  <h3>Menu Manager</h3>
-                  <span class="tag">CRUD</span>
-                </div>
-                <div class="form-row">
-                  <select id="menuRestaurant"></select>
-                  <input id="menuName" placeholder="Item name" />
-                  <input id="menuPrice" placeholder="Price (cents)" />
-                </div>
-                <div class="form-row">
-                  <button id="saveMenu" class="primary">Save Item</button>
-                  <button id="resetMenu">Reset</button>
-                </div>
-                <div id="adminMenu" class="list"></div>
-              </section>
+              </div>
+              <div id="adminHint" class="hint">管理员登录后才能操作。</div>
             </div>
           </section>
 
           <section class="view" id="view-account">
             <div class="panel account">
               <div class="panel-head">
-                <h3>Account</h3>
-                <span class="tag">Auth</span>
+                <h3>账号与权限</h3>
+                <span class="tag">登录</span>
               </div>
-              <div class="columns">
-                <div class="auth-box">
-                  <h4>Login</h4>
-                  <input id="loginUser" placeholder="Username" />
-                  <input id="loginPass" placeholder="Password" type="password" />
-                  <button id="loginBtn" class="primary">Login</button>
+              <div class="grid">
+                <div>
+                  <h4>登录</h4>
+                  <input id="loginUser" placeholder="用户名" />
+                  <input id="loginPass" placeholder="密码" type="password" />
+                  <button class="primary" id="loginBtn">登录</button>
                 </div>
-                <div class="auth-box">
-                  <h4>Register</h4>
-                  <input id="regUser" placeholder="Username" />
-                  <input id="regPass" placeholder="Password" type="password" />
-                  <button id="registerBtn">Register</button>
+                <div>
+                  <h4>注册</h4>
+                  <input id="regUser" placeholder="用户名" />
+                  <input id="regPass" placeholder="密码" type="password" />
+                  <button id="registerBtn">注册</button>
                 </div>
               </div>
-              <div class="hint">
-                Admin login: <strong>admin</strong> / <strong>admin123</strong>
-              </div>
-              <button id="logoutBtn" class="ghost">Logout</button>
+              <div class="hint">管理员账号：admin / admin123</div>
+              <button id="logoutBtn" class="ghost">退出登录</button>
             </div>
           </section>
         </section>

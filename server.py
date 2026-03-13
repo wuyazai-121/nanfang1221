@@ -44,95 +44,212 @@ def init_db():
     )
     conn.execute(
         """
-        CREATE TABLE IF NOT EXISTS restaurants (
+        CREATE TABLE IF NOT EXISTS chips (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            eta_min INTEGER NOT NULL,
-            rating REAL NOT NULL,
-            lat REAL NOT NULL DEFAULT 31.2304,
-            lng REAL NOT NULL DEFAULT 121.4737,
-            delivery_base_cents INTEGER NOT NULL DEFAULT 300,
-            delivery_per_km_cents INTEGER NOT NULL DEFAULT 120
+            model TEXT NOT NULL,
+            vendor TEXT NOT NULL,
+            package TEXT NOT NULL,
+            voltage_min REAL NOT NULL,
+            voltage_max REAL NOT NULL,
+            cpu TEXT NOT NULL,
+            freq_mhz INTEGER NOT NULL,
+            ram_kb INTEGER NOT NULL,
+            flash_kb INTEGER NOT NULL,
+            interfaces TEXT NOT NULL,
+            scenario TEXT NOT NULL,
+            cost_level INTEGER NOT NULL
         )
         """
     )
     conn.execute(
         """
-        CREATE TABLE IF NOT EXISTS menu_items (
+        CREATE TABLE IF NOT EXISTS sensors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            restaurant_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            price_cents INTEGER NOT NULL,
-            FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+            model TEXT NOT NULL,
+            type TEXT NOT NULL,
+            vendor TEXT NOT NULL,
+            voltage_min REAL NOT NULL,
+            voltage_max REAL NOT NULL,
+            interface TEXT NOT NULL,
+            range_text TEXT NOT NULL,
+            accuracy_text TEXT NOT NULL,
+            pins TEXT NOT NULL,
+            scenario TEXT NOT NULL
         )
         """
     )
     conn.execute(
         """
-        CREATE TABLE IF NOT EXISTS orders (
+        CREATE TABLE IF NOT EXISTS manuals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            created_at TEXT NOT NULL,
-            customer_name TEXT,
-            address TEXT,
-            total_cents INTEGER NOT NULL,
-            user_id INTEGER,
-            restaurant_id INTEGER,
-            distance_km REAL DEFAULT 0,
-            delivery_fee_cents INTEGER DEFAULT 0,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id INTEGER NOT NULL,
-            menu_item_id INTEGER NOT NULL,
-            qty INTEGER NOT NULL,
-            price_cents INTEGER NOT NULL,
-            FOREIGN KEY (order_id) REFERENCES orders(id),
-            FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+            target_type TEXT NOT NULL,
+            target_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            key_points TEXT NOT NULL
         )
         """
     )
 
-    cur = conn.execute("SELECT COUNT(*) FROM restaurants")
-    count = cur.fetchone()[0]
-    if count == 0:
-        restaurants = [
-            ("Noodle House", 25, 4.6, 31.2304, 121.4737, 300, 120),
-            ("Rice Bowl", 30, 4.3, 31.2205, 121.4552, 300, 110),
-            ("Grill Hub", 35, 4.7, 31.2407, 121.4919, 400, 130),
+    cur = conn.execute("SELECT COUNT(*) FROM chips")
+    if cur.fetchone()[0] == 0:
+        chips = [
+            (
+                "STM32F103C8",
+                "ST",
+                "LQFP48",
+                2.0,
+                3.6,
+                "Cortex-M3",
+                72,
+                20,
+                64,
+                json.dumps(["GPIO", "UART", "I2C", "SPI", "ADC"]),
+                "Industrial, IoT",
+                2,
+            ),
+            (
+                "ESP32-WROOM",
+                "Espressif",
+                "QFN48",
+                3.0,
+                3.6,
+                "Xtensa LX6",
+                240,
+                520,
+                4096,
+                json.dumps(["GPIO", "UART", "I2C", "SPI", "ADC", "WiFi", "BT"]),
+                "Smart Home, IoT",
+                3,
+            ),
+            (
+                "ATmega328P",
+                "Microchip",
+                "DIP28",
+                1.8,
+                5.5,
+                "AVR",
+                16,
+                2,
+                32,
+                json.dumps(["GPIO", "UART", "I2C", "SPI", "ADC"]),
+                "Education, Basic Control",
+                1,
+            ),
         ]
         conn.executemany(
             """
-            INSERT INTO restaurants
-            (name, eta_min, rating, lat, lng, delivery_base_cents, delivery_per_km_cents)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO chips
+            (model, vendor, package, voltage_min, voltage_max, cpu, freq_mhz,
+             ram_kb, flash_kb, interfaces, scenario, cost_level)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            restaurants,
+            chips,
         )
-        items = [
-            (1, "Beef Noodles", 2600),
-            (1, "Tomato Egg Noodles", 1800),
-            (1, "Spicy Wontons", 1600),
-            (2, "Chicken Rice", 2200),
-            (2, "Pork Rice", 2400),
-            (2, "Veggie Rice", 1700),
-            (3, "Grilled Chicken", 2800),
-            (3, "BBQ Pork", 3000),
-            (3, "Mixed Grill", 3600),
+
+    cur = conn.execute("SELECT COUNT(*) FROM sensors")
+    if cur.fetchone()[0] == 0:
+        sensors = [
+            (
+                "BME280",
+                "Temperature/Humidity/Pressure",
+                "Bosch",
+                1.7,
+                3.6,
+                "I2C",
+                "Temp -40~85C, Hum 0~100%RH, Press 300~1100hPa",
+                "Temp ±1.0C, Hum ±3%",
+                json.dumps(["VCC", "GND", "SDA", "SCL"]),
+                "Environment Monitoring",
+            ),
+            (
+                "MPU6050",
+                "IMU",
+                "TDK",
+                2.3,
+                3.4,
+                "I2C",
+                "Accel ±2~16g, Gyro ±250~2000dps",
+                "Accel 16-bit, Gyro 16-bit",
+                json.dumps(["VCC", "GND", "SDA", "SCL", "INT"]),
+                "Robotics, Wearables",
+            ),
+            (
+                "HC-SR04",
+                "Ultrasonic",
+                "Generic",
+                4.5,
+                5.5,
+                "GPIO",
+                "2~400cm",
+                "±3mm",
+                json.dumps(["VCC", "GND", "TRIG", "ECHO"]),
+                "Distance Sensing",
+            ),
+            (
+                "BH1750",
+                "Light",
+                "ROHM",
+                2.4,
+                3.6,
+                "I2C",
+                "1~65535 lux",
+                "±20%",
+                json.dumps(["VCC", "GND", "SDA", "SCL"]),
+                "Lighting Control",
+            ),
         ]
         conn.executemany(
-            "INSERT INTO menu_items (restaurant_id, name, price_cents) VALUES (?, ?, ?)",
-            items,
+            """
+            INSERT INTO sensors
+            (model, type, vendor, voltage_min, voltage_max, interface,
+             range_text, accuracy_text, pins, scenario)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            sensors,
+        )
+
+    cur = conn.execute("SELECT COUNT(*) FROM manuals")
+    if cur.fetchone()[0] == 0:
+        manuals = [
+            (
+                "chip",
+                1,
+                "STM32F103C8 Reference Manual",
+                "Core peripherals, clock tree, GPIO, ADC and communication.",
+                json.dumps(
+                    {
+                        "pins": ["PA9: UART_TX", "PA10: UART_RX", "PB6: I2C_SCL"],
+                        "power": "2.0V~3.6V",
+                        "interfaces": "GPIO/UART/I2C/SPI/ADC",
+                    }
+                ),
+            ),
+            (
+                "sensor",
+                1,
+                "BME280 Datasheet",
+                "Environmental sensor with I2C/SPI interface.",
+                json.dumps(
+                    {
+                        "pins": ["VCC", "GND", "SDA", "SCL"],
+                        "power": "1.7V~3.6V",
+                        "protocol": "I2C 3.4MHz",
+                    }
+                ),
+            ),
+        ]
+        conn.executemany(
+            """
+            INSERT INTO manuals
+            (target_type, target_id, title, summary, key_points)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            manuals,
         )
 
     cur = conn.execute("SELECT COUNT(*) FROM users WHERE is_admin = 1")
-    admin_count = cur.fetchone()[0]
-    if admin_count == 0:
+    if cur.fetchone()[0] == 0:
         conn.execute(
             "INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, 1)",
             ("admin", hash_password("admin", "admin123")),
@@ -147,16 +264,62 @@ def rows_to_dicts(cursor):
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
-def haversine_km(lat1, lng1, lat2, lng2):
-    from math import radians, cos, sin, asin, sqrt
+def score_combo(chip, sensors, scenario):
+    interfaces = json.loads(chip["interfaces"])
+    interface_ok = 1.0
+    for s in sensors:
+        if s["interface"] not in interfaces:
+            interface_ok = 0.0
 
-    dlat = radians(lat2 - lat1)
-    dlng = radians(lng2 - lng1)
-    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(
-        dlng / 2
-    ) ** 2
-    c = 2 * asin(sqrt(a))
-    return 6371.0 * c
+    perf = min(1.0, (chip["freq_mhz"] / 200) * 0.5 + (chip["ram_kb"] / 512) * 0.3 + (chip["flash_kb"] / 4096) * 0.2)
+    scenario_match = 1.0 if scenario and scenario.lower() in chip["scenario"].lower() else 0.6
+    cost = (6 - chip["cost_level"]) / 5
+    score = 0.4 * interface_ok + 0.3 * perf + 0.2 * scenario_match + 0.1 * cost
+    return score
+
+
+def build_wiring(chip, sensors):
+    wiring = []
+    for sensor in sensors:
+        interface = sensor["interface"]
+        if interface == "I2C":
+            mapping = [
+                ("VCC", "3.3V"),
+                ("GND", "GND"),
+                ("SDA", "I2C_SDA"),
+                ("SCL", "I2C_SCL"),
+            ]
+        elif interface == "SPI":
+            mapping = [
+                ("VCC", "3.3V"),
+                ("GND", "GND"),
+                ("MOSI", "SPI_MOSI"),
+                ("MISO", "SPI_MISO"),
+                ("SCK", "SPI_SCK"),
+                ("CS", "SPI_CS"),
+            ]
+        elif interface == "UART":
+            mapping = [
+                ("VCC", "3.3V"),
+                ("GND", "GND"),
+                ("TX", "UART_RX"),
+                ("RX", "UART_TX"),
+            ]
+        else:
+            mapping = [
+                ("VCC", "5V/3.3V"),
+                ("GND", "GND"),
+                ("SIG", "GPIO/ADC"),
+            ]
+        wiring.append(
+            {
+                "sensor": sensor["model"],
+                "interface": interface,
+                "mapping": mapping,
+                "notes": "Verify voltage compatibility and address conflicts.",
+            }
+        )
+    return wiring
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -190,8 +353,7 @@ class Handler(SimpleHTTPRequestHandler):
             if token:
                 return token
         query = parse_qs(urlparse(self.path).query)
-        token = query.get("token", [None])[0]
-        return token
+        return query.get("token", [None])[0]
 
     def _get_user(self, conn, token):
         if not token:
@@ -220,18 +382,6 @@ class Handler(SimpleHTTPRequestHandler):
             return
         self.send_error(404, "Not Found")
 
-    def do_PUT(self):
-        if self.path.startswith("/api/"):
-            self._handle_api_put()
-            return
-        self.send_error(404, "Not Found")
-
-    def do_DELETE(self):
-        if self.path.startswith("/api/"):
-            self._handle_api_delete()
-            return
-        self.send_error(404, "Not Found")
-
     def _handle_api_get(self):
         parsed = urlparse(self.path)
         path = parsed.path
@@ -240,92 +390,54 @@ class Handler(SimpleHTTPRequestHandler):
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         try:
-            if path == "/api/restaurants":
-                lat = query.get("lat", [None])[0]
-                lng = query.get("lng", [None])[0]
+            if path == "/api/chips":
+                term = (query.get("q", [""])[0] or "").lower()
                 cur = conn.execute(
                     """
-                    SELECT id, name, eta_min, rating, lat, lng,
-                           delivery_base_cents, delivery_per_km_cents
-                    FROM restaurants
+                    SELECT * FROM chips
                     ORDER BY id
                     """
                 )
-                restaurants = rows_to_dicts(cur)
-                if lat is not None and lng is not None:
-                    try:
-                        lat = float(lat)
-                        lng = float(lng)
-                        for r in restaurants:
-                            dist = haversine_km(lat, lng, r["lat"], r["lng"])
-                            fee = r["delivery_base_cents"] + int(
-                                r["delivery_per_km_cents"] * dist
-                            )
-                            r["distance_km"] = dist
-                            r["delivery_fee_cents"] = fee
-                        restaurants.sort(key=lambda x: x.get("distance_km", 0))
-                    except ValueError:
-                        pass
-                self._send_json({"restaurants": restaurants})
+                rows = rows_to_dicts(cur)
+                if term:
+                    rows = [r for r in rows if term in r["model"].lower() or term in r["vendor"].lower()]
+                self._send_json({"chips": rows})
                 return
 
-            if path == "/api/menu":
-                rid = query.get("restaurant_id", [None])[0]
-                if not rid:
-                    self._send_json({"error": "restaurant_id required"}, status=400)
+            if path == "/api/sensors":
+                term = (query.get("q", [""])[0] or "").lower()
+                cur = conn.execute(
+                    """
+                    SELECT * FROM sensors
+                    ORDER BY id
+                    """
+                )
+                rows = rows_to_dicts(cur)
+                if term:
+                    rows = [r for r in rows if term in r["model"].lower() or term in r["type"].lower()]
+                self._send_json({"sensors": rows})
+                return
+
+            if path == "/api/manuals":
+                target_type = query.get("type", [""])[0]
+                target_id = query.get("id", [""])[0]
+                if not target_type or not target_id:
+                    self._send_json({"manuals": []})
                     return
                 cur = conn.execute(
                     """
-                    SELECT id, restaurant_id, name, price_cents
-                    FROM menu_items
-                    WHERE restaurant_id = ?
-                    ORDER BY id
+                    SELECT * FROM manuals
+                    WHERE target_type = ? AND target_id = ?
                     """,
-                    (rid,),
+                    (target_type, target_id),
                 )
-                self._send_json({"menu": rows_to_dicts(cur)})
+                self._send_json({"manuals": rows_to_dicts(cur)})
                 return
 
             if path == "/api/me":
                 token = self._get_token()
                 user = self._get_user(conn, token)
-                if not user:
-                    self._send_json({"user": None})
-                    return
                 self._send_json({"user": user})
-                return
-
-            if path == "/api/orders":
-                token = self._get_token()
-                user = self._get_user(conn, token)
-                if not user:
-                    self._send_json({"error": "unauthorized"}, status=401)
-                    return
-                cur = conn.execute(
-                    """
-                    SELECT o.id, o.created_at, o.total_cents, o.delivery_fee_cents,
-                           o.distance_km, o.address, o.customer_name,
-                           r.name AS restaurant_name
-                    FROM orders o
-                    LEFT JOIN restaurants r ON r.id = o.restaurant_id
-                    WHERE o.user_id = ?
-                    ORDER BY o.id DESC
-                    """,
-                    (user["id"],),
-                )
-                orders = rows_to_dicts(cur)
-                for order in orders:
-                    cur = conn.execute(
-                        """
-                        SELECT oi.qty, oi.price_cents, m.name
-                        FROM order_items oi
-                        JOIN menu_items m ON m.id = oi.menu_item_id
-                        WHERE oi.order_id = ?
-                        """,
-                        (order["id"],),
-                    )
-                    order["items"] = rows_to_dicts(cur)
-                self._send_json({"orders": orders})
                 return
 
             self._send_json({"error": "Not Found"}, status=404)
@@ -335,7 +447,6 @@ class Handler(SimpleHTTPRequestHandler):
     def _handle_api_post(self):
         parsed = urlparse(self.path)
         path = parsed.path
-
         payload = self._read_json()
         if payload is None:
             self._send_json({"error": "Invalid JSON"}, status=400)
@@ -373,20 +484,13 @@ class Handler(SimpleHTTPRequestHandler):
                     (username,),
                 )
                 row = cur.fetchone()
-                if not row:
-                    self._send_json({"error": "invalid credentials"}, status=401)
-                    return
-                if row["password_hash"] != hash_password(username, password):
+                if not row or row["password_hash"] != hash_password(username, password):
                     self._send_json({"error": "invalid credentials"}, status=401)
                     return
                 token = uuid.uuid4().hex
                 conn.execute(
                     "INSERT INTO sessions (token, user_id, created_at) VALUES (?, ?, ?)",
-                    (
-                        token,
-                        row["id"],
-                        datetime.now(timezone.utc).isoformat(),
-                    ),
+                    (token, row["id"], datetime.now(timezone.utc).isoformat()),
                 )
                 conn.commit()
                 self._send_json(
@@ -410,143 +514,96 @@ class Handler(SimpleHTTPRequestHandler):
             finally:
                 conn.close()
 
-        if path == "/api/order":
-            items = payload.get("items", [])
-            restaurant_id = payload.get("restaurant_id")
-            if not isinstance(items, list) or len(items) == 0:
-                self._send_json({"error": "items required"}, status=400)
-                return
-            if not restaurant_id:
-                self._send_json({"error": "restaurant_id required"}, status=400)
-                return
-
-            customer_name = payload.get("customer_name", "")
-            address = payload.get("address", "")
-            address_lat = payload.get("address_lat")
-            address_lng = payload.get("address_lng")
-
+        if path == "/api/select":
+            scenario = payload.get("scenario", "")
+            sensor_types = payload.get("sensor_types", [])
             conn = sqlite3.connect(DB_PATH)
-            conn.execute("PRAGMA foreign_keys = ON;")
             conn.row_factory = sqlite3.Row
             try:
-                token = self._get_token(payload)
-                user = self._get_user(conn, token)
-                total = 0
-                normalized = []
-                for item in items:
-                    menu_id = item.get("menu_item_id")
-                    qty = item.get("qty", 1)
-                    if not menu_id or qty <= 0:
-                        self._send_json({"error": "invalid item"}, status=400)
-                        return
-                    cur = conn.execute(
-                        "SELECT price_cents FROM menu_items WHERE id = ? AND restaurant_id = ?",
-                        (menu_id, restaurant_id),
+                chips = rows_to_dicts(conn.execute("SELECT * FROM chips"))
+                sensors = rows_to_dicts(conn.execute("SELECT * FROM sensors"))
+                selected_sensors = []
+                for s_type in sensor_types:
+                    for s in sensors:
+                        if s_type.lower() in s["type"].lower():
+                            selected_sensors.append(s)
+                            break
+                results = []
+                for chip in chips:
+                    score = score_combo(chip, selected_sensors, scenario)
+                    reasons = [
+                        "接口匹配度高",
+                        "性能满足需求",
+                        "场景适配度良好",
+                    ]
+                    results.append(
+                        {
+                            "chip": chip,
+                            "sensors": selected_sensors,
+                            "score": round(score * 100, 1),
+                            "reasons": reasons,
+                        }
                     )
-                    row = cur.fetchone()
-                    if not row:
-                        self._send_json({"error": "menu item not found"}, status=404)
-                        return
-                    price_cents = row[0]
-                    total += price_cents * qty
-                    normalized.append((menu_id, qty, price_cents))
-
-                cur = conn.execute(
-                    """
-                    SELECT lat, lng, delivery_base_cents, delivery_per_km_cents
-                    FROM restaurants
-                    WHERE id = ?
-                    """,
-                    (restaurant_id,),
-                )
-                rest = cur.fetchone()
-                distance_km = 0.0
-                delivery_fee = 0
-                if rest and address_lat is not None and address_lng is not None:
-                    try:
-                        distance_km = haversine_km(
-                            float(address_lat),
-                            float(address_lng),
-                            float(rest["lat"]),
-                            float(rest["lng"]),
-                        )
-                        delivery_fee = int(
-                            rest["delivery_base_cents"]
-                            + rest["delivery_per_km_cents"] * distance_km
-                        )
-                    except ValueError:
-                        distance_km = 0.0
-                        delivery_fee = int(rest["delivery_base_cents"])
-                elif rest:
-                    delivery_fee = int(rest["delivery_base_cents"])
-
-                total_with_fee = total + delivery_fee
-                created_at = datetime.now(timezone.utc).isoformat()
-                cur = conn.execute(
-                    """
-                    INSERT INTO orders
-                    (created_at, customer_name, address, total_cents, user_id,
-                     restaurant_id, distance_km, delivery_fee_cents)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        created_at,
-                        customer_name,
-                        address,
-                        total_with_fee,
-                        user["id"] if user else None,
-                        restaurant_id,
-                        distance_km,
-                        delivery_fee,
-                    ),
-                )
-                order_id = cur.lastrowid
-                conn.executemany(
-                    """
-                    INSERT INTO order_items (order_id, menu_item_id, qty, price_cents)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    [(order_id, mid, qty, price) for (mid, qty, price) in normalized],
-                )
-                conn.commit()
-                self._send_json(
-                    {
-                        "order_id": order_id,
-                        "total_cents": total_with_fee,
-                        "delivery_fee_cents": delivery_fee,
-                        "distance_km": distance_km,
-                    }
-                )
+                results.sort(key=lambda x: x["score"], reverse=True)
+                self._send_json({"results": results[:5]})
                 return
             finally:
                 conn.close()
 
-        if path == "/api/admin/restaurants":
+        if path == "/api/wiring":
+            chip_id = payload.get("chip_id")
+            sensor_ids = payload.get("sensor_ids", [])
+            if not chip_id:
+                self._send_json({"error": "chip_id required"}, status=400)
+                return
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
             try:
-                token = self._get_token(payload)
-                user = self._get_user(conn, token)
+                chip = conn.execute("SELECT * FROM chips WHERE id = ?", (chip_id,)).fetchone()
+                if not chip:
+                    self._send_json({"error": "chip not found"}, status=404)
+                    return
+                sensors = []
+                for sid in sensor_ids:
+                    row = conn.execute("SELECT * FROM sensors WHERE id = ?", (sid,)).fetchone()
+                    if row:
+                        sensors.append(dict(row))
+                wiring = build_wiring(dict(chip), sensors)
+                self._send_json({"chip": dict(chip), "wiring": wiring})
+                return
+            finally:
+                conn.close()
+
+        if path == "/api/admin/chips":
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            try:
+                user = self._get_user(conn, self._get_token(payload))
                 if not user or not user["is_admin"]:
                     self._send_json({"error": "admin only"}, status=403)
                     return
-                name = (payload.get("name") or "").strip()
-                if not name:
-                    self._send_json({"error": "name required"}, status=400)
-                    return
-                eta_min = int(payload.get("eta_min", 30))
-                rating = float(payload.get("rating", 4.0))
-                lat = float(payload.get("lat", 31.2304))
-                lng = float(payload.get("lng", 121.4737))
-                base_fee = int(payload.get("delivery_base_cents", 300))
-                per_km = int(payload.get("delivery_per_km_cents", 120))
+                data = (
+                    payload.get("model"),
+                    payload.get("vendor"),
+                    payload.get("package"),
+                    float(payload.get("voltage_min", 0)),
+                    float(payload.get("voltage_max", 0)),
+                    payload.get("cpu"),
+                    int(payload.get("freq_mhz", 0)),
+                    int(payload.get("ram_kb", 0)),
+                    int(payload.get("flash_kb", 0)),
+                    json.dumps(payload.get("interfaces", [])),
+                    payload.get("scenario", ""),
+                    int(payload.get("cost_level", 3)),
+                )
                 cur = conn.execute(
                     """
-                    INSERT INTO restaurants
-                    (name, eta_min, rating, lat, lng, delivery_base_cents, delivery_per_km_cents)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO chips
+                    (model, vendor, package, voltage_min, voltage_max, cpu, freq_mhz, ram_kb,
+                     flash_kb, interfaces, scenario, cost_level)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (name, eta_min, rating, lat, lng, base_fee, per_km),
+                    data,
                 )
                 conn.commit()
                 self._send_json({"id": cur.lastrowid})
@@ -554,151 +611,37 @@ class Handler(SimpleHTTPRequestHandler):
             finally:
                 conn.close()
 
-        if path == "/api/admin/menu":
+        if path == "/api/admin/sensors":
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
             try:
-                token = self._get_token(payload)
-                user = self._get_user(conn, token)
+                user = self._get_user(conn, self._get_token(payload))
                 if not user or not user["is_admin"]:
                     self._send_json({"error": "admin only"}, status=403)
                     return
-                restaurant_id = payload.get("restaurant_id")
-                name = (payload.get("name") or "").strip()
-                price_cents = int(payload.get("price_cents", 0))
-                if not restaurant_id or not name or price_cents <= 0:
-                    self._send_json({"error": "invalid menu data"}, status=400)
-                    return
+                data = (
+                    payload.get("model"),
+                    payload.get("type"),
+                    payload.get("vendor"),
+                    float(payload.get("voltage_min", 0)),
+                    float(payload.get("voltage_max", 0)),
+                    payload.get("interface"),
+                    payload.get("range_text", ""),
+                    payload.get("accuracy_text", ""),
+                    json.dumps(payload.get("pins", [])),
+                    payload.get("scenario", ""),
+                )
                 cur = conn.execute(
                     """
-                    INSERT INTO menu_items (restaurant_id, name, price_cents)
-                    VALUES (?, ?, ?)
+                    INSERT INTO sensors
+                    (model, type, vendor, voltage_min, voltage_max, interface, range_text,
+                     accuracy_text, pins, scenario)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (restaurant_id, name, price_cents),
+                    data,
                 )
                 conn.commit()
                 self._send_json({"id": cur.lastrowid})
-                return
-            finally:
-                conn.close()
-
-        self._send_json({"error": "Not Found"}, status=404)
-
-    def _handle_api_put(self):
-        parsed = urlparse(self.path)
-        path = parsed.path
-        payload = self._read_json()
-        if payload is None:
-            self._send_json({"error": "Invalid JSON"}, status=400)
-            return
-        if path == "/api/admin/restaurants":
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-            try:
-                token = self._get_token(payload)
-                user = self._get_user(conn, token)
-                if not user or not user["is_admin"]:
-                    self._send_json({"error": "admin only"}, status=403)
-                    return
-                rid = payload.get("id")
-                if not rid:
-                    self._send_json({"error": "id required"}, status=400)
-                    return
-                conn.execute(
-                    """
-                    UPDATE restaurants
-                    SET name = ?, eta_min = ?, rating = ?, lat = ?, lng = ?,
-                        delivery_base_cents = ?, delivery_per_km_cents = ?
-                    WHERE id = ?
-                    """,
-                    (
-                        payload.get("name"),
-                        int(payload.get("eta_min", 30)),
-                        float(payload.get("rating", 4.0)),
-                        float(payload.get("lat", 31.2304)),
-                        float(payload.get("lng", 121.4737)),
-                        int(payload.get("delivery_base_cents", 300)),
-                        int(payload.get("delivery_per_km_cents", 120)),
-                        rid,
-                    ),
-                )
-                conn.commit()
-                self._send_json({"ok": True})
-                return
-            finally:
-                conn.close()
-        if path == "/api/admin/menu":
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-            try:
-                token = self._get_token(payload)
-                user = self._get_user(conn, token)
-                if not user or not user["is_admin"]:
-                    self._send_json({"error": "admin only"}, status=403)
-                    return
-                mid = payload.get("id")
-                if not mid:
-                    self._send_json({"error": "id required"}, status=400)
-                    return
-                conn.execute(
-                    """
-                    UPDATE menu_items
-                    SET name = ?, price_cents = ?
-                    WHERE id = ?
-                    """,
-                    (
-                        payload.get("name"),
-                        int(payload.get("price_cents", 0)),
-                        mid,
-                    ),
-                )
-                conn.commit()
-                self._send_json({"ok": True})
-                return
-            finally:
-                conn.close()
-        self._send_json({"error": "Not Found"}, status=404)
-
-    def _handle_api_delete(self):
-        parsed = urlparse(self.path)
-        path = parsed.path
-        query = parse_qs(parsed.query)
-        token = self._get_token()
-
-        if path == "/api/admin/restaurants":
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-            try:
-                user = self._get_user(conn, token)
-                if not user or not user["is_admin"]:
-                    self._send_json({"error": "admin only"}, status=403)
-                    return
-                rid = query.get("id", [None])[0]
-                if not rid:
-                    self._send_json({"error": "id required"}, status=400)
-                    return
-                conn.execute("DELETE FROM restaurants WHERE id = ?", (rid,))
-                conn.commit()
-                self._send_json({"ok": True})
-                return
-            finally:
-                conn.close()
-
-        if path == "/api/admin/menu":
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-            try:
-                user = self._get_user(conn, token)
-                if not user or not user["is_admin"]:
-                    self._send_json({"error": "admin only"}, status=403)
-                    return
-                mid = query.get("id", [None])[0]
-                if not mid:
-                    self._send_json({"error": "id required"}, status=400)
-                    return
-                conn.execute("DELETE FROM menu_items WHERE id = ?", (mid,))
-                conn.commit()
-                self._send_json({"ok": True})
                 return
             finally:
                 conn.close()

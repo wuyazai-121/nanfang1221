@@ -2,30 +2,39 @@ const statusEl = document.getElementById("status");
 const userBadge = document.getElementById("userBadge");
 const tabs = document.querySelectorAll(".tab");
 const views = {
-  customer: document.getElementById("view-customer"),
-  orders: document.getElementById("view-orders"),
+  home: document.getElementById("view-home"),
+  select: document.getElementById("view-select"),
+  wiring: document.getElementById("view-wiring"),
+  manuals: document.getElementById("view-manuals"),
   admin: document.getElementById("view-admin"),
   account: document.getElementById("view-account"),
 };
 
-const restaurantsEl = document.getElementById("restaurants");
-const menuEl = document.getElementById("menu");
-const cartEl = document.getElementById("cart");
-const itemsTotalEl = document.getElementById("itemsTotal");
-const deliveryFeeEl = document.getElementById("deliveryFee");
-const grandTotalEl = document.getElementById("grandTotal");
-const heroTotalEl = document.getElementById("heroTotal");
-const checkoutBtn = document.getElementById("checkout");
-const orderResult = document.getElementById("orderResult");
+const globalSearch = document.getElementById("globalSearch");
+const searchBtn = document.getElementById("searchBtn");
 
-const addressInput = document.getElementById("address");
-const latInput = document.getElementById("lat");
-const lngInput = document.getElementById("lng");
-const useDemoBtn = document.getElementById("useDemo");
+const hotChips = document.getElementById("hotChips");
+const hotSensors = document.getElementById("hotSensors");
+const statsChips = document.getElementById("statsChips");
+const statsSensors = document.getElementById("statsSensors");
 
-const ordersEl = document.getElementById("orders");
-const mapCanvas = document.getElementById("mapCanvas");
-const mapInfo = document.getElementById("mapInfo");
+const scenarioInput = document.getElementById("scenario");
+const smartSelectBtn = document.getElementById("smartSelect");
+const selectResults = document.getElementById("selectResults");
+
+const chipList = document.getElementById("chipList");
+const sensorList = document.getElementById("sensorList");
+
+const wiringChip = document.getElementById("wiringChip");
+const wiringSensors = document.getElementById("wiringSensors");
+const genWiring = document.getElementById("genWiring");
+const wiringResult = document.getElementById("wiringResult");
+
+const manualType = document.getElementById("manualType");
+const manualTarget = document.getElementById("manualTarget");
+const loadManual = document.getElementById("loadManual");
+const manualList = document.getElementById("manualList");
+const extractPane = document.getElementById("extractPane");
 
 const loginUser = document.getElementById("loginUser");
 const loginPass = document.getElementById("loginPass");
@@ -35,36 +44,40 @@ const regPass = document.getElementById("regPass");
 const registerBtn = document.getElementById("registerBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
-const restName = document.getElementById("restName");
-const restEta = document.getElementById("restEta");
-const restRating = document.getElementById("restRating");
-const restLat = document.getElementById("restLat");
-const restLng = document.getElementById("restLng");
-const restBase = document.getElementById("restBase");
-const restPerKm = document.getElementById("restPerKm");
-const saveRestaurant = document.getElementById("saveRestaurant");
-const resetRestaurant = document.getElementById("resetRestaurant");
-const adminRestaurants = document.getElementById("adminRestaurants");
+const adminHint = document.getElementById("adminHint");
+const adminChipModel = document.getElementById("adminChipModel");
+const adminChipVendor = document.getElementById("adminChipVendor");
+const adminChipPackage = document.getElementById("adminChipPackage");
+const adminChipVoltageMin = document.getElementById("adminChipVoltageMin");
+const adminChipVoltageMax = document.getElementById("adminChipVoltageMax");
+const adminChipCpu = document.getElementById("adminChipCpu");
+const adminChipFreq = document.getElementById("adminChipFreq");
+const adminChipRam = document.getElementById("adminChipRam");
+const adminChipFlash = document.getElementById("adminChipFlash");
+const adminChipInterfaces = document.getElementById("adminChipInterfaces");
+const adminChipScenario = document.getElementById("adminChipScenario");
+const adminChipCost = document.getElementById("adminChipCost");
+const adminSaveChip = document.getElementById("adminSaveChip");
 
-const menuRestaurant = document.getElementById("menuRestaurant");
-const menuName = document.getElementById("menuName");
-const menuPrice = document.getElementById("menuPrice");
-const saveMenu = document.getElementById("saveMenu");
-const resetMenu = document.getElementById("resetMenu");
-const adminMenu = document.getElementById("adminMenu");
+const adminSensorModel = document.getElementById("adminSensorModel");
+const adminSensorType = document.getElementById("adminSensorType");
+const adminSensorVendor = document.getElementById("adminSensorVendor");
+const adminSensorVoltageMin = document.getElementById("adminSensorVoltageMin");
+const adminSensorVoltageMax = document.getElementById("adminSensorVoltageMax");
+const adminSensorInterface = document.getElementById("adminSensorInterface");
+const adminSensorRange = document.getElementById("adminSensorRange");
+const adminSensorAccuracy = document.getElementById("adminSensorAccuracy");
+const adminSensorPins = document.getElementById("adminSensorPins");
+const adminSensorScenario = document.getElementById("adminSensorScenario");
+const adminSaveSensor = document.getElementById("adminSaveSensor");
 
 let token = localStorage.getItem("token") || "";
 let currentUser = null;
-let restaurants = [];
-let menuItems = [];
-let selectedRestaurant = null;
-const cart = new Map();
-let editingRestaurantId = null;
-let editingMenuId = null;
-
-function fmtMoney(cents) {
-  return `CNY ${(cents / 100).toFixed(2)}`;
-}
+let chips = [];
+let sensors = [];
+let selectedNeeds = new Set();
+let selectedSensorTypes = new Set();
+let selectedSensorIds = new Set();
 
 function setStatus(text) {
   statusEl.textContent = text;
@@ -72,18 +85,12 @@ function setStatus(text) {
 
 function setUserBadge() {
   if (!currentUser) {
-    userBadge.textContent = "Guest";
+    userBadge.textContent = "访客";
     return;
   }
-  userBadge.textContent = currentUser.is_admin ? `Admin: ${currentUser.username}` : currentUser.username;
-}
-
-function apiFetch(path, options = {}) {
-  const headers = options.headers || {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  return fetch(path, { ...options, headers });
+  userBadge.textContent = currentUser.is_admin
+    ? `管理员 ${currentUser.username}`
+    : currentUser.username;
 }
 
 function setView(name) {
@@ -99,304 +106,242 @@ tabs.forEach((tab) => {
   tab.addEventListener("click", () => setView(tab.dataset.view));
 });
 
-function haversine(lat1, lng1, lat2, lng2) {
-  const toRad = (v) => (v * Math.PI) / 180;
-  const dlat = toRad(lat2 - lat1);
-  const dlng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dlat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dlng / 2) ** 2;
-  const c = 2 * Math.asin(Math.sqrt(a));
-  return 6371 * c;
-}
-
-function renderRestaurants() {
-  restaurantsEl.innerHTML = "";
-  if (restaurants.length === 0) {
-    restaurantsEl.innerHTML = "<div class='meta'>No restaurants.</div>";
-    return;
-  }
-  restaurants.forEach((r) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    const info = document.createElement("div");
-    const distance = r.distance_km ? `${r.distance_km.toFixed(2)} km` : "Set location";
-    const fee = r.delivery_fee_cents ? fmtMoney(r.delivery_fee_cents) : "n/a";
-    info.innerHTML = `<strong>${r.name}</strong><div class="meta">ETA ${r.eta_min} min · ${r.rating.toFixed(
-      1
-    )}★ · ${distance} · Fee ${fee}</div>`;
-    const btn = document.createElement("button");
-    btn.textContent = selectedRestaurant === r.id ? "Selected" : "Select";
-    btn.onclick = () => selectRestaurant(r.id);
-    card.appendChild(info);
-    card.appendChild(btn);
-    restaurantsEl.appendChild(card);
-  });
-}
-
-function renderMenu() {
-  menuEl.innerHTML = "";
-  if (!selectedRestaurant) {
-    menuEl.innerHTML = "<div class='meta'>Select a restaurant first.</div>";
-    return;
-  }
-  menuItems.forEach((m) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    const info = document.createElement("div");
-    info.innerHTML = `<strong>${m.name}</strong><div class="meta">${fmtMoney(m.price_cents)}</div>`;
-    const btn = document.createElement("button");
-    btn.textContent = "Add";
-    btn.onclick = () => addToCart(m.id);
-    card.appendChild(info);
-    card.appendChild(btn);
-    menuEl.appendChild(card);
-  });
-}
-
-function renderCart() {
-  cartEl.innerHTML = "";
-  let itemsTotal = 0;
-  cart.forEach((qty, id) => {
-    const item = menuItems.find((m) => m.id === id);
-    if (!item) return;
-    itemsTotal += item.price_cents * qty;
-    const row = document.createElement("div");
-    row.className = "cart-item";
-    row.innerHTML = `<div><strong>${item.name}</strong><span> x${qty}</span></div><div>${fmtMoney(
-      item.price_cents * qty
-    )}</div>`;
-    cartEl.appendChild(row);
-  });
-  if (cart.size === 0) {
-    cartEl.innerHTML = "<div class='meta'>Cart is empty.</div>";
-  }
-  itemsTotalEl.textContent = fmtMoney(itemsTotal);
-  const deliveryFee = getSelectedDeliveryFee();
-  deliveryFeeEl.textContent = fmtMoney(deliveryFee);
-  const grandTotal = itemsTotal + deliveryFee;
-  grandTotalEl.textContent = fmtMoney(grandTotal);
-  if (heroTotalEl) {
-    heroTotalEl.textContent = fmtMoney(grandTotal);
-  }
-  cartEl.classList.add("fade-in");
-}
-
-function getSelectedDeliveryFee() {
-  const rest = restaurants.find((r) => r.id === selectedRestaurant);
-  if (!rest || !rest.delivery_fee_cents) return 0;
-  return rest.delivery_fee_cents;
-}
-
-async function loadRestaurants() {
-  setStatus("Loading restaurants...");
-  restaurantsEl.classList.add("fade-in");
-  const lat = latInput.value.trim();
-  const lng = lngInput.value.trim();
-  const query = lat && lng ? `?lat=${lat}&lng=${lng}` : "";
-  const res = await fetch(`/api/restaurants${query}`);
-  const data = await res.json();
-  restaurants = data.restaurants || [];
-  setStatus("Ready");
-  renderRestaurants();
-  renderMap();
-}
-
-async function selectRestaurant(id) {
-  selectedRestaurant = id;
-  cart.clear();
-  menuEl.classList.add("fade-in");
-  renderRestaurants();
-  setStatus("Loading menu...");
-  const res = await fetch(`/api/menu?restaurant_id=${id}`);
-  const data = await res.json();
-  menuItems = data.menu || [];
-  setStatus("Ready");
-  renderMenu();
-  renderCart();
-  renderMap();
-}
-
-function addToCart(menuId) {
-  const prev = cart.get(menuId) || 0;
-  cart.set(menuId, prev + 1);
-  renderCart();
-}
-
-function renderMap() {
-  mapCanvas.innerHTML = "";
-  const lat = parseFloat(latInput.value);
-  const lng = parseFloat(lngInput.value);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    mapInfo.textContent = "Set location to estimate";
-    return;
-  }
-  const bounds = restaurants.reduce(
-    (acc, r) => {
-      acc.minLat = Math.min(acc.minLat, r.lat);
-      acc.maxLat = Math.max(acc.maxLat, r.lat);
-      acc.minLng = Math.min(acc.minLng, r.lng);
-      acc.maxLng = Math.max(acc.maxLng, r.lng);
-      return acc;
-    },
-    { minLat: lat, maxLat: lat, minLng: lng, maxLng: lng }
-  );
-  const padding = 0.01;
-  bounds.minLat -= padding;
-  bounds.maxLat += padding;
-  bounds.minLng -= padding;
-  bounds.maxLng += padding;
-
-  const project = (la, ln) => {
-    const x = ((ln - bounds.minLng) / (bounds.maxLng - bounds.minLng)) * 100;
-    const y = (1 - (la - bounds.minLat) / (bounds.maxLat - bounds.minLat)) * 100;
-    return { x, y };
-  };
-
-  const userPoint = project(lat, lng);
-  const userMarker = document.createElement("div");
-  userMarker.className = "marker user";
-  userMarker.style.left = `${userPoint.x}%`;
-  userMarker.style.top = `${userPoint.y}%`;
-  mapCanvas.appendChild(userMarker);
-
-  restaurants.forEach((r) => {
-    const p = project(r.lat, r.lng);
-    const marker = document.createElement("div");
-    marker.className = "marker restaurant";
-    marker.style.left = `${p.x}%`;
-    marker.style.top = `${p.y}%`;
-    mapCanvas.appendChild(marker);
-  });
-
-  if (selectedRestaurant) {
-    const rest = restaurants.find((r) => r.id === selectedRestaurant);
-    if (rest) {
-      const dist = haversine(lat, lng, rest.lat, rest.lng);
-      mapInfo.textContent = `Selected restaurant: ${dist.toFixed(2)} km away`;
-    }
-  } else {
-    mapInfo.textContent = "Select a restaurant for distance";
-  }
-}
-
-useDemoBtn.addEventListener("click", () => {
-  latInput.value = "31.2290";
-  lngInput.value = "121.4800";
-  loadRestaurants();
+document.querySelectorAll("[data-jump]").forEach((btn) => {
+  btn.addEventListener("click", () => setView(btn.dataset.jump));
 });
 
-latInput.addEventListener("change", loadRestaurants);
-lngInput.addEventListener("change", loadRestaurants);
+function apiFetch(path, options = {}) {
+  const headers = options.headers || {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return fetch(path, { ...options, headers });
+}
 
-checkoutBtn.addEventListener("click", async () => {
-  if (cart.size === 0) {
-    orderResult.textContent = "Cart is empty.";
-    return;
-  }
-  if (!selectedRestaurant) {
-    orderResult.textContent = "Select a restaurant.";
-    return;
-  }
-  const items = Array.from(cart.entries()).map(([menu_item_id, qty]) => ({
-    menu_item_id,
-    qty,
-  }));
-  orderResult.textContent = "Placing order...";
-  const res = await apiFetch("/api/order", {
+function renderHotCards() {
+  statsChips.textContent = chips.length;
+  statsSensors.textContent = sensors.length;
+
+  hotChips.innerHTML = "";
+  chips.slice(0, 3).forEach((c) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div><strong>${c.model}</strong><div class="meta">${c.vendor} · ${c.cpu}</div></div>
+      <span>${c.freq_mhz}MHz</span>`;
+    hotChips.appendChild(card);
+  });
+
+  hotSensors.innerHTML = "";
+  sensors.slice(0, 3).forEach((s) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div><strong>${s.model}</strong><div class="meta">${s.type}</div></div>
+      <span>${s.interface}</span>`;
+    hotSensors.appendChild(card);
+  });
+}
+
+function renderChipList() {
+  chipList.innerHTML = "";
+  chips.forEach((c) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div><strong>${c.model}</strong><div class="meta">${c.vendor} · ${c.package}</div></div>
+      <span>${c.voltage_min}-${c.voltage_max}V</span>`;
+    chipList.appendChild(card);
+  });
+}
+
+function renderSensorList() {
+  sensorList.innerHTML = "";
+  sensors.forEach((s) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div><strong>${s.model}</strong><div class="meta">${s.type}</div></div>
+      <span>${s.interface}</span>`;
+    sensorList.appendChild(card);
+  });
+}
+
+function renderWiringSelectors() {
+  wiringChip.innerHTML = "";
+  chips.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = `${c.model} (${c.cpu})`;
+    wiringChip.appendChild(opt);
+  });
+
+  wiringSensors.innerHTML = "";
+  sensors.forEach((s) => {
+    const btn = document.createElement("button");
+    btn.textContent = `${s.model} (${s.interface})`;
+    btn.onclick = () => {
+      if (selectedSensorIds.has(s.id)) {
+        selectedSensorIds.delete(s.id);
+        btn.classList.remove("active");
+      } else {
+        selectedSensorIds.add(s.id);
+        btn.classList.add("active");
+      }
+    };
+    wiringSensors.appendChild(btn);
+  });
+}
+
+async function loadData(query = "") {
+  setStatus("加载数据中...");
+  const [chipRes, sensorRes] = await Promise.all([
+    fetch(`/api/chips?q=${encodeURIComponent(query)}`),
+    fetch(`/api/sensors?q=${encodeURIComponent(query)}`),
+  ]);
+  const chipData = await chipRes.json();
+  const sensorData = await sensorRes.json();
+  chips = chipData.chips || [];
+  sensors = sensorData.sensors || [];
+  setStatus("在线");
+  renderHotCards();
+  renderChipList();
+  renderSensorList();
+  renderWiringSelectors();
+  renderManualTargets();
+}
+
+function collectPillSelections() {
+  selectedNeeds.clear();
+  selectedSensorTypes.clear();
+  document.querySelectorAll("[data-need].active").forEach((btn) => {
+    selectedNeeds.add(btn.dataset.need);
+  });
+  document.querySelectorAll("[data-sensor].active").forEach((btn) => {
+    selectedSensorTypes.add(btn.dataset.sensor);
+  });
+}
+
+document.querySelectorAll("[data-need]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("active");
+  });
+});
+document.querySelectorAll("[data-sensor]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("active");
+  });
+});
+
+smartSelectBtn.addEventListener("click", async () => {
+  collectPillSelections();
+  const res = await apiFetch("/api/select", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      items,
-      restaurant_id: selectedRestaurant,
-      customer_name: currentUser ? currentUser.username : "",
-      address: addressInput.value.trim(),
-      address_lat: latInput.value.trim(),
-      address_lng: lngInput.value.trim(),
+      scenario: scenarioInput.value.trim(),
+      core_needs: Array.from(selectedNeeds),
+      sensor_types: Array.from(selectedSensorTypes),
     }),
   });
   const data = await res.json();
-  if (!res.ok) {
-    orderResult.textContent = data.error || "Order failed.";
-    return;
-  }
-  cart.clear();
-  renderCart();
-  orderResult.textContent = `Order #${data.order_id} placed. Total ${fmtMoney(
-    data.total_cents
-  )}`;
-  loadOrders();
+  selectResults.innerHTML = "";
+  (data.results || []).forEach((r) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const sensorsText = r.sensors.map((s) => s.model).join(", ") || "未指定";
+    card.innerHTML = `<div>
+        <strong>${r.chip.model}</strong>
+        <div class="meta">${r.chip.vendor} · ${r.chip.cpu}</div>
+        <div class="meta">传感器: ${sensorsText}</div>
+      </div>
+      <span>${r.score}分</span>`;
+    selectResults.appendChild(card);
+  });
 });
 
-async function loadOrders() {
-  if (!token) {
-    ordersEl.innerHTML = "<div class='meta'>Login to view orders.</div>";
-    return;
-  }
-  const res = await apiFetch("/api/orders");
+genWiring.addEventListener("click", async () => {
+  const chipId = wiringChip.value;
+  const sensorIds = Array.from(selectedSensorIds);
+  const res = await apiFetch("/api/wiring", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chip_id: Number(chipId), sensor_ids: sensorIds }),
+  });
   const data = await res.json();
-  if (!res.ok) {
-    ordersEl.innerHTML = "<div class='meta'>Failed to load orders.</div>";
-    return;
-  }
-  const orders = data.orders || [];
-  if (orders.length === 0) {
-    ordersEl.innerHTML = "<div class='meta'>No orders yet.</div>";
-    return;
-  }
-  ordersEl.innerHTML = "";
-  orders.forEach((o) => {
+  wiringResult.innerHTML = "";
+  (data.wiring || []).forEach((w) => {
     const card = document.createElement("div");
-    card.className = "order-card";
-    const items = o.items
-      .map((i) => `${i.name} x${i.qty}`)
-      .join(", ");
-    card.innerHTML = `<h4>#${o.id} · ${o.restaurant_name || "Restaurant"}</h4>
-      <div class="meta">Items: ${items}</div>
-      <div class="meta">Delivery: ${fmtMoney(o.delivery_fee_cents)} · Distance ${
-      o.distance_km ? o.distance_km.toFixed(2) : "0.00"
-    } km</div>
-      <div class="meta">Total: ${fmtMoney(o.total_cents)}</div>`;
-    ordersEl.appendChild(card);
+    card.className = "card";
+    const mapping = w.mapping
+      .map((pair) => `${pair[0]} → ${pair[1]}`)
+      .join("<br/>");
+    card.innerHTML = `<div>
+        <strong>${w.sensor}</strong>
+        <div class="meta">${w.interface}</div>
+        <div class="meta">${mapping}</div>
+      </div>`;
+    wiringResult.appendChild(card);
+  });
+});
+
+function renderManualTargets() {
+  manualTarget.innerHTML = "";
+  const list = manualType.value === "chip" ? chips : sensors;
+  list.forEach((item) => {
+    const opt = document.createElement("option");
+    opt.value = item.id;
+    opt.textContent = manualType.value === "chip" ? item.model : item.model;
+    manualTarget.appendChild(opt);
   });
 }
+
+manualType.addEventListener("change", renderManualTargets);
+
+loadManual.addEventListener("click", async () => {
+  const type = manualType.value;
+  const id = manualTarget.value;
+  const res = await apiFetch(`/api/manuals?type=${type}&id=${id}`);
+  const data = await res.json();
+  manualList.innerHTML = "";
+  extractPane.innerHTML = "";
+  (data.manuals || []).forEach((m) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div><strong>${m.title}</strong><div class="meta">${m.summary}</div></div>`;
+    manualList.appendChild(card);
+    const points = JSON.parse(m.key_points || "{}");
+    extractPane.innerHTML = `<strong>关键信息</strong>
+      <p>引脚: ${(points.pins || []).join(", ")}</p>
+      <p>供电: ${points.power || "-"}</p>
+      <p>接口: ${points.interfaces || points.protocol || "-"}</p>`;
+  });
+});
 
 async function login() {
   const res = await fetch("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: loginUser.value.trim(),
-      password: loginPass.value,
-    }),
+    body: JSON.stringify({ username: loginUser.value, password: loginPass.value }),
   });
   const data = await res.json();
   if (!res.ok) {
-    alert(data.error || "Login failed");
+    alert(data.error || "登录失败");
     return;
   }
   token = data.token;
   localStorage.setItem("token", token);
   await loadMe();
-  await loadOrders();
-  await loadRestaurants();
 }
 
 async function register() {
   const res = await fetch("/api/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: regUser.value.trim(),
-      password: regPass.value,
-    }),
+    body: JSON.stringify({ username: regUser.value, password: regPass.value }),
   });
   const data = await res.json();
   if (!res.ok) {
-    alert(data.error || "Register failed");
+    alert(data.error || "注册失败");
     return;
   }
-  alert("Registered. Please login.");
+  alert("注册成功，请登录");
 }
 
 async function logout() {
@@ -407,7 +352,6 @@ async function logout() {
   localStorage.removeItem("token");
   currentUser = null;
   setUserBadge();
-  loadOrders();
 }
 
 async function loadMe() {
@@ -420,190 +364,66 @@ async function loadMe() {
   const data = await res.json();
   currentUser = data.user;
   setUserBadge();
-  renderAdminState();
+  adminHint.textContent = currentUser && currentUser.is_admin ? "管理员已登录" : "管理员登录后才能操作。";
 }
 
-function renderAdminState() {
-  const adminTab = document.querySelector('[data-view="admin"]');
-  if (currentUser && currentUser.is_admin) {
-    adminTab.disabled = false;
-  } else {
-    adminTab.disabled = true;
-    if (views.admin.classList.contains("active")) {
-      setView("customer");
-    }
-  }
-}
-
-async function loadAdminRestaurants() {
-  if (!currentUser || !currentUser.is_admin) return;
-  await loadRestaurants();
-  adminRestaurants.innerHTML = "";
-  restaurants.forEach((r) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `<div><strong>${r.name}</strong><div class="meta">${r.eta_min} min · ${r.rating.toFixed(
-      1
-    )}★</div></div>`;
-    const actions = document.createElement("div");
-    const edit = document.createElement("button");
-    edit.textContent = "Edit";
-    edit.onclick = () => {
-      editingRestaurantId = r.id;
-      restName.value = r.name;
-      restEta.value = r.eta_min;
-      restRating.value = r.rating;
-      restLat.value = r.lat;
-      restLng.value = r.lng;
-      restBase.value = r.delivery_base_cents;
-      restPerKm.value = r.delivery_per_km_cents;
-    };
-    const del = document.createElement("button");
-    del.textContent = "Delete";
-    del.onclick = async () => {
-      await apiFetch(`/api/admin/restaurants?id=${r.id}`, { method: "DELETE" });
-      loadAdminRestaurants();
-    };
-    actions.appendChild(edit);
-    actions.appendChild(del);
-    card.appendChild(actions);
-    adminRestaurants.appendChild(card);
-  });
-}
-
-async function loadAdminMenu() {
-  if (!currentUser || !currentUser.is_admin) return;
-  menuRestaurant.innerHTML = "";
-  restaurants.forEach((r) => {
-    const opt = document.createElement("option");
-    opt.value = r.id;
-    opt.textContent = r.name;
-    menuRestaurant.appendChild(opt);
-  });
-  if (!menuRestaurant.value && restaurants[0]) {
-    menuRestaurant.value = restaurants[0].id;
-  }
-  const rid = menuRestaurant.value;
-  if (!rid) return;
-  const res = await fetch(`/api/menu?restaurant_id=${rid}`);
-  const data = await res.json();
-  const list = data.menu || [];
-  adminMenu.innerHTML = "";
-  list.forEach((m) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `<div><strong>${m.name}</strong><div class="meta">${fmtMoney(
-      m.price_cents
-    )}</div></div>`;
-    const actions = document.createElement("div");
-    const edit = document.createElement("button");
-    edit.textContent = "Edit";
-    edit.onclick = () => {
-      editingMenuId = m.id;
-      menuName.value = m.name;
-      menuPrice.value = m.price_cents;
-    };
-    const del = document.createElement("button");
-    del.textContent = "Delete";
-    del.onclick = async () => {
-      await apiFetch(`/api/admin/menu?id=${m.id}`, { method: "DELETE" });
-      loadAdminMenu();
-      loadRestaurants();
-    };
-    actions.appendChild(edit);
-    actions.appendChild(del);
-    card.appendChild(actions);
-    adminMenu.appendChild(card);
-  });
-}
-
-saveRestaurant.addEventListener("click", async () => {
+adminSaveChip.addEventListener("click", async () => {
   const payload = {
-    name: restName.value.trim(),
-    eta_min: restEta.value,
-    rating: restRating.value,
-    lat: restLat.value,
-    lng: restLng.value,
-    delivery_base_cents: restBase.value,
-    delivery_per_km_cents: restPerKm.value,
+    model: adminChipModel.value,
+    vendor: adminChipVendor.value,
+    package: adminChipPackage.value,
+    voltage_min: adminChipVoltageMin.value,
+    voltage_max: adminChipVoltageMax.value,
+    cpu: adminChipCpu.value,
+    freq_mhz: adminChipFreq.value,
+    ram_kb: adminChipRam.value,
+    flash_kb: adminChipFlash.value,
+    interfaces: adminChipInterfaces.value.split(",").map((s) => s.trim()).filter(Boolean),
+    scenario: adminChipScenario.value,
+    cost_level: adminChipCost.value,
   };
-  if (editingRestaurantId) {
-    payload.id = editingRestaurantId;
-    await apiFetch("/api/admin/restaurants", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } else {
-    await apiFetch("/api/admin/restaurants", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  }
-  editingRestaurantId = null;
-  resetRestaurant.click();
-  await loadAdminRestaurants();
-  await loadAdminMenu();
+  await apiFetch("/api/admin/chips", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  loadData();
 });
 
-resetRestaurant.addEventListener("click", () => {
-  editingRestaurantId = null;
-  restName.value = "";
-  restEta.value = "";
-  restRating.value = "";
-  restLat.value = "";
-  restLng.value = "";
-  restBase.value = "";
-  restPerKm.value = "";
-});
-
-saveMenu.addEventListener("click", async () => {
+adminSaveSensor.addEventListener("click", async () => {
   const payload = {
-    restaurant_id: menuRestaurant.value,
-    name: menuName.value.trim(),
-    price_cents: menuPrice.value,
+    model: adminSensorModel.value,
+    type: adminSensorType.value,
+    vendor: adminSensorVendor.value,
+    voltage_min: adminSensorVoltageMin.value,
+    voltage_max: adminSensorVoltageMax.value,
+    interface: adminSensorInterface.value,
+    range_text: adminSensorRange.value,
+    accuracy_text: adminSensorAccuracy.value,
+    pins: adminSensorPins.value.split(",").map((s) => s.trim()).filter(Boolean),
+    scenario: adminSensorScenario.value,
   };
-  if (editingMenuId) {
-    payload.id = editingMenuId;
-    await apiFetch("/api/admin/menu", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } else {
-    await apiFetch("/api/admin/menu", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  }
-  editingMenuId = null;
-  resetMenu.click();
-  loadAdminMenu();
-  loadRestaurants();
+  await apiFetch("/api/admin/sensors", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  loadData();
 });
-
-resetMenu.addEventListener("click", () => {
-  editingMenuId = null;
-  menuName.value = "";
-  menuPrice.value = "";
-});
-
-menuRestaurant.addEventListener("change", loadAdminMenu);
 
 loginBtn.addEventListener("click", login);
 registerBtn.addEventListener("click", register);
 logoutBtn.addEventListener("click", logout);
 
+searchBtn.addEventListener("click", () => {
+  loadData(globalSearch.value.trim());
+});
+
 async function boot() {
-  setStatus("Connecting...");
+  setStatus("加载中...");
   await loadMe();
-  await loadRestaurants();
-  await loadOrders();
-  await loadAdminRestaurants();
-  await loadAdminMenu();
-  setStatus("Online");
+  await loadData();
+  setStatus("在线");
 }
 
 boot();
