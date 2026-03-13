@@ -14,6 +14,7 @@ const cartEl = document.getElementById("cart");
 const itemsTotalEl = document.getElementById("itemsTotal");
 const deliveryFeeEl = document.getElementById("deliveryFee");
 const grandTotalEl = document.getElementById("grandTotal");
+const heroTotalEl = document.getElementById("heroTotal");
 const checkoutBtn = document.getElementById("checkout");
 const orderResult = document.getElementById("orderResult");
 
@@ -173,7 +174,11 @@ function renderCart() {
   itemsTotalEl.textContent = fmtMoney(itemsTotal);
   const deliveryFee = getSelectedDeliveryFee();
   deliveryFeeEl.textContent = fmtMoney(deliveryFee);
-  grandTotalEl.textContent = fmtMoney(itemsTotal + deliveryFee);
+  const grandTotal = itemsTotal + deliveryFee;
+  grandTotalEl.textContent = fmtMoney(grandTotal);
+  if (heroTotalEl) {
+    heroTotalEl.textContent = fmtMoney(grandTotal);
+  }
 }
 
 function getSelectedDeliveryFee() {

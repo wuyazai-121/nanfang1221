@@ -7,147 +7,215 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="page">
-      <header class="topbar">
+    <div class="app">
+      <aside class="sidebar">
         <div class="brand">
           <div class="logo">TP</div>
           <div class="brand-text">
             <h1>Takeout Pro</h1>
-            <p>Database-powered delivery platform demo</p>
+            <p>Delivery dashboard</p>
           </div>
         </div>
-        <div class="right-bar">
+
+        <nav class="nav">
+          <button class="tab active" data-view="customer">Dashboard</button>
+          <button class="tab" data-view="orders">Orders</button>
+          <button class="tab" data-view="admin">Admin</button>
+          <button class="tab" data-view="account">Account</button>
+        </nav>
+
+        <div class="sidebar-footer">
           <div class="pill" id="status">Offline</div>
           <div class="user" id="userBadge">Guest</div>
         </div>
-      </header>
+      </aside>
 
-      <nav class="tabs">
-        <button class="tab active" data-view="customer">Customer</button>
-        <button class="tab" data-view="orders">Orders</button>
-        <button class="tab" data-view="admin">Admin</button>
-        <button class="tab" data-view="account">Account</button>
-      </nav>
-
-      <main class="views">
-        <section class="view active" id="view-customer">
-          <div class="grid">
-            <section class="panel">
-              <h2>Restaurants</h2>
-              <div class="sub">
-                <div class="field">
-                  <label>Delivery address</label>
-                  <input id="address" placeholder="Street, building, room" />
-                </div>
-                <div class="coords">
-                  <input id="lat" placeholder="Lat" />
-                  <input id="lng" placeholder="Lng" />
-                  <button id="useDemo">Use Demo Location</button>
-                </div>
-              </div>
-              <div id="restaurants" class="list"></div>
-            </section>
-
-            <section class="panel">
-              <h2>Menu</h2>
-              <div id="menu" class="list"></div>
-            </section>
-
-            <section class="panel cart">
-              <h2>Cart</h2>
-              <div id="cart" class="cart-list"></div>
-              <div class="cart-total">
-                <span>Items Total</span>
-                <strong id="itemsTotal">CNY 0.00</strong>
-              </div>
-              <div class="cart-total">
-                <span>Delivery Fee</span>
-                <strong id="deliveryFee">CNY 0.00</strong>
-              </div>
-              <div class="cart-total grand">
-                <span>Grand Total</span>
-                <strong id="grandTotal">CNY 0.00</strong>
-              </div>
-              <button id="checkout" class="primary">Place Order</button>
-              <div id="orderResult" class="result"></div>
-              <div class="map">
-                <div class="map-head">
-                  <h3>Distance Preview</h3>
-                  <div id="mapInfo">Set location to estimate</div>
-                </div>
-                <div id="mapCanvas" class="map-canvas"></div>
-              </div>
-            </section>
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h2>Hi, welcome back</h2>
+            <p>Track restaurants and orders in real time</p>
           </div>
-        </section>
-
-        <section class="view" id="view-orders">
-          <div class="panel">
-            <h2>Order History</h2>
-            <div id="orders" class="orders"></div>
+          <div class="top-actions">
+            <div class="search">
+              <input placeholder="Search restaurant, dish, order" />
+            </div>
+            <button class="primary">Upgrade</button>
           </div>
-        </section>
+        </header>
 
-        <section class="view" id="view-admin">
-          <div class="grid admin-grid">
-            <section class="panel">
-              <h2>Restaurant Manager</h2>
-              <div class="form-row">
-                <input id="restName" placeholder="Name" />
-                <input id="restEta" placeholder="ETA (min)" />
-                <input id="restRating" placeholder="Rating" />
-              </div>
-              <div class="form-row">
-                <input id="restLat" placeholder="Lat" />
-                <input id="restLng" placeholder="Lng" />
-                <input id="restBase" placeholder="Base fee (cents)" />
-                <input id="restPerKm" placeholder="Per km (cents)" />
-              </div>
-              <div class="form-row">
-                <button id="saveRestaurant" class="primary">Save Restaurant</button>
-                <button id="resetRestaurant">Reset</button>
-              </div>
-              <div id="adminRestaurants" class="list"></div>
-            </section>
+        <section class="views">
+          <section class="view active" id="view-customer">
+            <div class="customer-grid">
+              <div class="left-col">
+                <section class="panel hero">
+                  <div class="hero-copy">
+                    <h3>Daily Overview</h3>
+                    <p>Monitor active delivery flow and estimated load.</p>
+                    <div class="chips">
+                      <span>Peak ETA</span>
+                      <span>Order Velocity</span>
+                      <span>Delivery Health</span>
+                    </div>
+                  </div>
+                  <div class="hero-visual">
+                    <div class="bubble bubble-a"></div>
+                    <div class="bubble bubble-b"></div>
+                    <div class="bubble bubble-c"></div>
+                    <div class="hero-metric">
+                      <strong id="heroTotal">CNY 0.00</strong>
+                      <span>Projected revenue</span>
+                    </div>
+                  </div>
+                </section>
 
-            <section class="panel">
-              <h2>Menu Manager</h2>
-              <div class="form-row">
-                <select id="menuRestaurant"></select>
-                <input id="menuName" placeholder="Item name" />
-                <input id="menuPrice" placeholder="Price (cents)" />
-              </div>
-              <div class="form-row">
-                <button id="saveMenu" class="primary">Save Item</button>
-                <button id="resetMenu">Reset</button>
-              </div>
-              <div id="adminMenu" class="list"></div>
-            </section>
-          </div>
-        </section>
+                <section class="panel card-stack">
+                  <div class="panel-head">
+                    <h3>Delivery Setup</h3>
+                    <span class="tag">Live</span>
+                  </div>
+                  <div class="field">
+                    <label>Delivery address</label>
+                    <input id="address" placeholder="Street, building, room" />
+                  </div>
+                  <div class="coords">
+                    <input id="lat" placeholder="Lat" />
+                    <input id="lng" placeholder="Lng" />
+                    <button id="useDemo">Use Demo Location</button>
+                  </div>
+                </section>
 
-        <section class="view" id="view-account">
-          <div class="panel account">
-            <h2>Account</h2>
-            <div class="columns">
-              <div class="auth-box">
-                <h3>Login</h3>
-                <input id="loginUser" placeholder="Username" />
-                <input id="loginPass" placeholder="Password" type="password" />
-                <button id="loginBtn" class="primary">Login</button>
+                <section class="panel">
+                  <div class="panel-head">
+                    <h3>Restaurants</h3>
+                    <span class="tag">Nearby</span>
+                  </div>
+                  <div id="restaurants" class="list"></div>
+                </section>
+
+                <section class="panel">
+                  <div class="panel-head">
+                    <h3>Menu</h3>
+                    <span class="tag">Dynamic</span>
+                  </div>
+                  <div id="menu" class="list"></div>
+                </section>
               </div>
-              <div class="auth-box">
-                <h3>Register</h3>
-                <input id="regUser" placeholder="Username" />
-                <input id="regPass" placeholder="Password" type="password" />
-                <button id="registerBtn">Register</button>
+
+              <div class="right-col">
+                <section class="panel cart">
+                  <div class="panel-head">
+                    <h3>Cart</h3>
+                    <span class="tag">Checkout</span>
+                  </div>
+                  <div id="cart" class="cart-list"></div>
+                  <div class="cart-total">
+                    <span>Items Total</span>
+                    <strong id="itemsTotal">CNY 0.00</strong>
+                  </div>
+                  <div class="cart-total">
+                    <span>Delivery Fee</span>
+                    <strong id="deliveryFee">CNY 0.00</strong>
+                  </div>
+                  <div class="cart-total grand">
+                    <span>Grand Total</span>
+                    <strong id="grandTotal">CNY 0.00</strong>
+                  </div>
+                  <button id="checkout" class="primary">Place Order</button>
+                  <div id="orderResult" class="result"></div>
+                </section>
+
+                <section class="panel map">
+                  <div class="panel-head">
+                    <h3>Distance Preview</h3>
+                    <span id="mapInfo" class="tag">Set location</span>
+                  </div>
+                  <div id="mapCanvas" class="map-canvas"></div>
+                </section>
               </div>
             </div>
-            <div class="hint">
-              Admin login: <strong>admin</strong> / <strong>admin123</strong>
+          </section>
+
+          <section class="view" id="view-orders">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Order History</h3>
+                <span class="tag">Account</span>
+              </div>
+              <div id="orders" class="orders"></div>
             </div>
-            <button id="logoutBtn" class="ghost">Logout</button>
-          </div>
+          </section>
+
+          <section class="view" id="view-admin">
+            <div class="admin-grid">
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>Restaurant Manager</h3>
+                  <span class="tag">CRUD</span>
+                </div>
+                <div class="form-row">
+                  <input id="restName" placeholder="Name" />
+                  <input id="restEta" placeholder="ETA (min)" />
+                  <input id="restRating" placeholder="Rating" />
+                </div>
+                <div class="form-row">
+                  <input id="restLat" placeholder="Lat" />
+                  <input id="restLng" placeholder="Lng" />
+                  <input id="restBase" placeholder="Base fee (cents)" />
+                  <input id="restPerKm" placeholder="Per km (cents)" />
+                </div>
+                <div class="form-row">
+                  <button id="saveRestaurant" class="primary">Save Restaurant</button>
+                  <button id="resetRestaurant">Reset</button>
+                </div>
+                <div id="adminRestaurants" class="list"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <h3>Menu Manager</h3>
+                  <span class="tag">CRUD</span>
+                </div>
+                <div class="form-row">
+                  <select id="menuRestaurant"></select>
+                  <input id="menuName" placeholder="Item name" />
+                  <input id="menuPrice" placeholder="Price (cents)" />
+                </div>
+                <div class="form-row">
+                  <button id="saveMenu" class="primary">Save Item</button>
+                  <button id="resetMenu">Reset</button>
+                </div>
+                <div id="adminMenu" class="list"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view" id="view-account">
+            <div class="panel account">
+              <div class="panel-head">
+                <h3>Account</h3>
+                <span class="tag">Auth</span>
+              </div>
+              <div class="columns">
+                <div class="auth-box">
+                  <h4>Login</h4>
+                  <input id="loginUser" placeholder="Username" />
+                  <input id="loginPass" placeholder="Password" type="password" />
+                  <button id="loginBtn" class="primary">Login</button>
+                </div>
+                <div class="auth-box">
+                  <h4>Register</h4>
+                  <input id="regUser" placeholder="Username" />
+                  <input id="regPass" placeholder="Password" type="password" />
+                  <button id="registerBtn">Register</button>
+                </div>
+              </div>
+              <div class="hint">
+                Admin login: <strong>admin</strong> / <strong>admin123</strong>
+              </div>
+              <button id="logoutBtn" class="ghost">Logout</button>
+            </div>
+          </section>
         </section>
       </main>
     </div>
