@@ -179,6 +179,7 @@ function renderCart() {
   if (heroTotalEl) {
     heroTotalEl.textContent = fmtMoney(grandTotal);
   }
+  cartEl.classList.add("fade-in");
 }
 
 function getSelectedDeliveryFee() {
@@ -189,6 +190,7 @@ function getSelectedDeliveryFee() {
 
 async function loadRestaurants() {
   setStatus("Loading restaurants...");
+  restaurantsEl.classList.add("fade-in");
   const lat = latInput.value.trim();
   const lng = lngInput.value.trim();
   const query = lat && lng ? `?lat=${lat}&lng=${lng}` : "";
@@ -203,6 +205,7 @@ async function loadRestaurants() {
 async function selectRestaurant(id) {
   selectedRestaurant = id;
   cart.clear();
+  menuEl.classList.add("fade-in");
   renderRestaurants();
   setStatus("Loading menu...");
   const res = await fetch(`/api/menu?restaurant_id=${id}`);
