@@ -180,6 +180,20 @@
                 <div id="wiringResult" class="list"></div>
               </section>
             </div>
+            <section class="panel">
+              <div class="panel-head">
+                <h3>硬件连线图</h3>
+                <div class="panel-actions">
+                  <span class="tag">SVG</span>
+                  <button class="ghost small" id="exportSvg">导出SVG</button>
+                  <button class="ghost small" id="exportPng">导出PNG</button>
+                </div>
+              </div>
+              <div class="diagram-hint">悬浮高亮，点击锁定，点击空白取消。</div>
+              <div id="wiringDiagram" class="wiring-diagram">
+                <div class="diagram-empty">请选择芯片与传感器后生成连线图。</div>
+              </div>
+            </section>
           </section>
 
           <section class="view" id="view-manuals">

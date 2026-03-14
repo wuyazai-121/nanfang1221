@@ -7,3 +7,5 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+tmp_stm32_data/
+tmp_stm32_sources/
